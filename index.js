@@ -32,14 +32,31 @@ async function run() {
 
         const db = client.db('wanderlust');
         const destinationCollection = db.collection('destinations')
+        const bookingCollection = db.collection('bookings')
 
 
-        app.get('/destination', async(req, res) => {
+        app.get('/destination', (req, res, next) => {
+            const header = req.headers.authorization;
+            // console.log(header') //check
+            if(header === 'logged in'){
+                next()
+            }else{
+                res.status(401).send({message: "unauthorized"})
+            }
+        }, async(req, res) => {
             const destinations = await destinationCollection.find().toArray();
             res.send(destinations);
         })
 
-        app.get('/destination/:id', async(req, res) => {
+        app.get('/destination/:id', (req, res, next) => {
+            const header = req.headers.authorization;
+            // console.log("from header",header) //check
+            if(header === "logged in"){
+                next()
+            }else{
+                res.status(401).send({ message: "Unauthorized"})
+            }
+        }, async(req, res) => {
             const id = await req.params.id;
             const result = await destinationCollection.findOne({_id:new ObjectId(id)})
             res.send(result)
@@ -65,8 +82,25 @@ async function run() {
 
         app.post('/destination', async (req, res) => {
             const newDestinationData = req.body;
-            console.log(newDestinationData)
             const result = await destinationCollection.insertOne(newDestinationData);
+            res.send(result)
+        })
+
+        app.get('/booking/:id', async(req, res) => {
+            const {id} = req.params;
+            const result = await bookingCollection.find({userId:id }).toArray();
+            res.send(result)
+        })
+
+        app.delete('/booking/:id', async (req, res) => {
+            const {id} = req.params;
+            const result = await bookingCollection.deleteOne({_id: new ObjectId(id)})
+            res.send(result)
+        })
+
+        app.post('/booking', async (req, res) => {
+            const bookingData = req.body;
+            const result = await bookingCollection.insertOne(bookingData)
             res.send(result)
         })
 
