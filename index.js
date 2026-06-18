@@ -114,6 +114,11 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/featured', async (req, res) => {
+            const result = await destinationCollection.find().limit(4).toArray()
+            res.send(result)
+        })
+
 
 
         // await client.db("admin").command({ ping: 1 });
